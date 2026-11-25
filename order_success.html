@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Order Confirmation</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f6f8;
+}
+
+.container{
+    max-width:1000px;
+    margin:40px auto;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    border-radius:12px;
+    padding:30px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+.success{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.success h1{
+    color:#27ae60;
+    margin-bottom:10px;
+}
+
+.success p{
+    color:#666;
+}
+
+.timestamp{
+    text-align:center;
+    margin-top:8px;
+    color:#888;
+    font-size:14px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+th{
+    background:#3498db;
+    color:white;
+    padding:12px;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #ddd;
+    text-align:center;
+}
+
+tr:hover{
+    background:#f9f9f9;
+}
+
+.total-box{
+    text-align:right;
+    margin-top:25px;
+}
+
+.total-label{
+    font-size:18px;
+}
+
+.total-value{
+    font-size:32px;
+    font-weight:bold;
+    color:green;
+}
+
+.actions{
+    margin-top:30px;
+    display:flex;
+    justify-content:center;
+}
+
+.btn{
+    background:#3498db;
+    color:white;
+    text-decoration:none;
+    padding:15px 25px;
+    border-radius:8px;
+    transition:0.2s;
+}
+
+.btn:hover{
+    background:#2980b9;
+}
+
+.empty{
+    text-align:center;
+    padding:40px;
+    font-size:20px;
+    color:#888;
+}
+
+.badge{
+    background:#8e44ad;
+    color:white;
+    padding:4px 10px;
+    border-radius:15px;
+    font-size:12px;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <div class="success">
+
+            <h1>✅ Order Sent To Kitchen</h1>
+
+            <p>
+                The order has been successfully submitted.
+            </p>
+
+            <div class="timestamp" id="timestamp"></div>
+
+        </div>
+
+        <div id="content"></div>
+
+        <div class="actions">
+
+            <a href="order_taking.html"
+               class="btn"
+               onclick="restartOrder()">
+               Start New Order
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const order =
+JSON.parse(
+    localStorage.getItem("restaurantOrder")
+) || {};
+
+document.getElementById("timestamp").innerHTML =
+"Sent at: " +
+new Date().toLocaleString();
+
+let grandTotal = 0;
+
+let html = "";
+
+if(Object.keys(order).length === 0){
+
+    html = `
+    <div class="empty">
+        No order found.
+    </div>
+    `;
+}
+else{
+
+    html += `
+    <table>
+
+    <thead>
+    <tr>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Set Meal</th>
+        <th>Line Total</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    `;
+
+    for(let item in order){
+
+        let qty =
+            order[item].qty;
+
+        let price =
+            order[item].price;
+
+        let setCharge =
+            order[item].set
+            ? 1.50
+            : 0;
+
+        let lineTotal =
+            (price + setCharge)
+            * qty;
+
+        grandTotal += lineTotal;
+
+        html += `
+        <tr>
+
+            <td>
+                ${item}
+            </td>
+
+            <td>
+                ${qty}
+            </td>
+
+            <td>
+
+                ${
+                    order[item].set
+                    ? '<span class="badge">SET</span>'
+                    : '-'
+                }
+
+            </td>
+
+            <td>
+
+                $${lineTotal.toFixed(2)}
+
+            </td>
+
+        </tr>
+        `;
+    }
+
+    html += `
+    </tbody>
+    </table>
+
+    <div class="total-box">
+
+        <div class="total-label">
+
+            Grand Total
+
+        </div>
+
+        <div class="total-value">
+
+            $${grandTotal.toFixed(2)}
+
+        </div>
+
+    </div>
+    `;
+}
+
+document.getElementById("content").innerHTML =
+    html;
+
+function restartOrder(){
+
+    localStorage.removeItem(
+        "restaurantOrder"
+    );
+}
+
+</script>
+
+</body>
+</html>

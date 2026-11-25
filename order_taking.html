@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Delectable Foods - Waitress View</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f4f6f8;
+}
+
+.header{
+    background:#2c3e50;
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+
+.container{
+    display:flex;
+}
+
+.menu-section{
+    width:65%;
+    padding:20px;
+}
+
+.order-section{
+    width:35%;
+    background:white;
+    min-height:100vh;
+    padding:20px;
+    box-shadow:-3px 0 10px rgba(0,0,0,0.1);
+}
+
+.category{
+    margin-bottom:25px;
+}
+
+.category h2{
+    background:#3498db;
+    color:white;
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:10px;
+}
+
+.item-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+}
+
+.item-btn{
+    background:white;
+    border:none;
+    border-radius:10px;
+    padding:15px;
+    cursor:pointer;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
+    transition:.2s;
+}
+
+.item-btn:hover{
+    background:#eaf6ff;
+    transform:translateY(-2px);
+}
+
+.item-name{
+    font-weight:bold;
+    font-size:16px;
+}
+
+.item-price{
+    color:green;
+    font-weight:bold;
+    margin-top:8px;
+}
+
+.order-item{
+    border-bottom:1px solid #ddd;
+    padding:12px 0;
+}
+
+.controls{
+    margin-top:10px;
+}
+
+.btn{
+    border:none;
+    padding:8px 12px;
+    cursor:pointer;
+    border-radius:5px;
+    color:white;
+}
+
+.plus{
+    background:green;
+}
+
+.minus{
+    background:orange;
+}
+
+.remove{
+    background:red;
+}
+
+.set-btn{
+    background:#8e44ad;
+    color:white;
+    border:none;
+    padding:8px 12px;
+    margin-top:10px;
+    cursor:pointer;
+    border-radius:5px;
+}
+
+.total{
+    margin-top:20px;
+    font-size:24px;
+    color:green;
+    font-weight:bold;
+}
+
+.readback{
+    margin-top:20px;
+    background:#f8f9fa;
+    padding:15px;
+    border-radius:8px;
+}
+
+.send-btn{
+    width:100%;
+    margin-top:20px;
+    padding:15px;
+    border:none;
+    background:#27ae60;
+    color:white;
+    font-size:18px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.send-btn:hover{
+    background:#219150;
+}
+
+@media(max-width:900px){
+
+    .container{
+        flex-direction:column;
+    }
+
+    .menu-section,
+    .order-section{
+        width:100%;
+    }
+
+}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🍽 Delectable Foods</h1>
+    <h3>Waitress Ordering Screen</h3>
+</div>
+
+<div class="container">
+
+    <div class="menu-section">
+
+        <div id="menuContainer"></div>
+
+    </div>
+
+    <div class="order-section">
+
+        <h2>🧾 Order List</h2>
+
+        <div id="orderList">
+            No items added yet.
+        </div>
+
+        <div class="total" id="grandTotal">
+            Total: $0.00
+        </div>
+
+        <div class="readback">
+
+            <h3>📢 Order Readback</h3>
+
+            <div id="readbackText">
+                No items ordered.
+            </div>
+
+        </div>
+
+        <button class="send-btn" onclick="sendToKitchen()">
+            Send To Kitchen
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+const menu = {
+
+"Starters":[
+    {name:"Chicken Wings",price:2.00},
+    {name:"Chicken Nuggets",price:2.00},
+    {name:"Truffle Fries",price:4.00},
+    {name:"Calamari",price:8.00}
+],
+
+"Toast":[
+    {name:"Kaya Toast",price:2.60},
+    {name:"Kaya Butter Toast",price:2.80},
+    {name:"Peanut Toast",price:2.60},
+    {name:"Peanut Butter Toast",price:2.80}
+],
+
+"Local Delights":[
+    {name:"Chicken Rice",price:8.00},
+    {name:"Laksa",price:5.00},
+    {name:"Mee Rebus",price:5.00},
+    {name:"Mee Siam",price:5.00}
+],
+
+"Dessert":[
+    {name:"Kaya Balls",price:3.00},
+    {name:"Butter Cake",price:2.50},
+    {name:"Banana Cake",price:2.50},
+    {name:"Chocolate Cake",price:2.50}
+],
+
+"Drinks":[
+    {name:"Kopi / Tea",price:1.20},
+    {name:"Kopi / Tea O",price:1.10},
+    {name:"Kopi / Tea C",price:1.30},
+    {name:"Milo",price:1.60}
+]
+
+};
+
+let cart = {};
+
+let menuHtml = "";
+
+for(let category in menu){
+
+menuHtml += `
+<div class="category">
+<h2>${category}</h2>
+
+<div class="item-grid">
+`;
+
+menu[category].forEach(item=>{
+
+menuHtml += `
+<button class="item-btn"
+onclick="addItem('${item.name}',${item.price})">
+
+<div class="item-name">
+${item.name}
+</div>
+
+<div class="item-price">
+$${item.price.toFixed(2)}
+</div>
+
+</button>
+`;
+
+});
+
+menuHtml += `
+</div>
+</div>
+`;
+
+}
+
+document.getElementById("menuContainer").innerHTML = menuHtml;
+
+function addItem(name,price){
+
+    if(cart[name]){
+        cart[name].qty++;
+    }
+    else{
+        cart[name] = {
+            qty:1,
+            price:price,
+            set:false
+        };
+    }
+
+    renderCart();
+}
+
+function increase(name){
+
+    cart[name].qty++;
+
+    renderCart();
+}
+
+function decrease(name){
+
+    cart[name].qty--;
+
+    if(cart[name].qty <= 0){
+        delete cart[name];
+    }
+
+    renderCart();
+}
+
+function removeItem(name){
+
+    delete cart[name];
+
+    renderCart();
+}
+
+function toggleSet(name){
+
+    cart[name].set = !cart[name].set;
+
+    renderCart();
+}
+
+function renderCart(){
+
+    let html = "";
+    let readback = "";
+    let total = 0;
+
+    for(let item in cart){
+
+        let setCharge =
+            cart[item].set ? 1.50 : 0;
+
+        let lineTotal =
+            (cart[item].price + setCharge)
+            * cart[item].qty;
+
+        total += lineTotal;
+
+        html += `
+
+        <div class="order-item">
+
+            <strong>${item}</strong>
+
+            ${cart[item].set
+            ? "<br><span style='color:purple;'>Set Meal (+$1.50)</span>"
+            : ""}
+
+            <br><br>
+
+            Qty: ${cart[item].qty}
+
+            <br>
+
+            Line Total:
+            $${lineTotal.toFixed(2)}
+
+            <div class="controls">
+
+                <button
+                class="btn plus"
+                onclick="increase('${item}')">
+                +
+                </button>
+
+                <button
+                class="btn minus"
+                onclick="decrease('${item}')">
+                -
+                </button>
+
+                <button
+                class="btn remove"
+                onclick="removeItem('${item}')">
+                Remove
+                </button>
+
+            </div>
+        `;
+
+        if(item.includes("Toast")){
+
+            html += `
+
+            <button
+            class="set-btn"
+            onclick="toggleSet('${item}')">
+
+            ${cart[item].set
+            ? "Remove Set"
+            : "Make Set (+$1.50)"}
+
+            </button>
+
+            `;
+
+        }
+
+        html += `</div>`;
+
+        readback += `
+        <p>
+        ${cart[item].qty} x ${item}
+        ${cart[item].set ? "(Set Meal)" : ""}
+        </p>
+        `;
+    }
+
+    if(Object.keys(cart).length === 0){
+
+        html = "No items added yet.";
+        readback = "No items ordered.";
+
+    }
+
+    document.getElementById("orderList").innerHTML = html;
+
+    document.getElementById("readbackText").innerHTML = readback;
+
+    document.getElementById("grandTotal").innerHTML =
+        "Total: $" + total.toFixed(2);
+}
+
+function sendToKitchen(){
+
+    if(Object.keys(cart).length === 0){
+
+        alert("Please add at least one item.");
+
+        return;
+    }
+
+    localStorage.setItem(
+        "restaurantOrder",
+        JSON.stringify(cart)
+    );
+
+    window.location.href =
+        "order_success.html";
+}
+
+</script>
+
+</body>
+</html>
